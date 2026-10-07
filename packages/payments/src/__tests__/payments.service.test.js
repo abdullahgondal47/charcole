@@ -1,3 +1,5 @@
+import { StripeAdapter } from "../adapters/StripeAdapter.js";
+import { LemonSqueezyAdapter } from "../adapters/LemonSqueezyAdapter.js";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Mock adapters before importing the service so mocks are spy-able constructors
@@ -13,7 +15,7 @@ import { PaymentError } from "../errors/PaymentError.js";
 
 describe("payments.service", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     paymentsService.resetAdapter();
     delete process.env.PAYMENT_PROVIDER;
     delete process.env.STRIPE_SECRET_KEY;
@@ -30,7 +32,7 @@ describe("payments.service", () => {
 
     const adapter = paymentsService.getAdapter();
     expect(
-      vi.mocked(require("../adapters/StripeAdapter.js")).StripeAdapter,
+      vi.mocked(StripeAdapter),
     ).toHaveBeenCalledWith({
       secretKey: "sk_test_fake",
       webhookSecret: "whsec_fake",
@@ -45,8 +47,7 @@ describe("payments.service", () => {
 
     const adapter = paymentsService.getAdapter();
     expect(
-      vi.mocked(require("../adapters/LemonSqueezyAdapter.js"))
-        .LemonSqueezyAdapter,
+      vi.mocked(LemonSqueezyAdapter),
     ).toHaveBeenCalledWith({
       apiKey: "api_fake",
       webhookSecret: "secret_fake",
@@ -56,17 +57,17 @@ describe("payments.service", () => {
 
   it("getAdapter throws PROVIDER_NOT_CONFIGURED when env var not set", () => {
     expect(() => paymentsService.getAdapter()).toThrow(PaymentError);
-    expect(() => paymentsService.getAdapter()).toMatchObject({
+    expect(() => paymentsService.getAdapter()).toThrowError(expect.objectContaining({
       code: "PROVIDER_NOT_CONFIGURED",
-    });
+    }));
   });
 
   it("getAdapter throws CONFIG_ERROR for unknown provider", () => {
     process.env.PAYMENT_PROVIDER = "unknown";
     expect(() => paymentsService.getAdapter()).toThrow(PaymentError);
-    expect(() => paymentsService.getAdapter()).toMatchObject({
+    expect(() => paymentsService.getAdapter()).toThrowError(expect.objectContaining({
       code: "CONFIG_ERROR",
-    });
+    }));
   });
 
   it("getAdapter caches instance", () => {
@@ -101,9 +102,7 @@ describe("payments.service", () => {
         data: { id: "pi_123" },
       }),
     };
-    vi.mocked(
-      require("../adapters/StripeAdapter.js"),
-    ).StripeAdapter.mockReturnValue(mockAdapter);
+    vi.mocked(StripeAdapter).mockReturnValue(mockAdapter);
 
     const result = await paymentsService.processWebhook(
       Buffer.from("{}"),
@@ -120,12 +119,10 @@ describe("payments.service", () => {
     const mockAdapter = {
       verifyWebhook: vi.fn().mockResolvedValue({
         event: "payment_intent.succeeded",
-        data: { id: "pi_123" },
+        data: { id: "pi_duplicate" },
       }),
     };
-    vi.mocked(
-      require("../adapters/StripeAdapter.js"),
-    ).StripeAdapter.mockReturnValue(mockAdapter);
+    vi.mocked(StripeAdapter).mockReturnValue(mockAdapter);
 
     await paymentsService.processWebhook(Buffer.from("{}"), "sig");
     const result = await paymentsService.processWebhook(
