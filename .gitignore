@@ -5,3 +5,6 @@ workflows.md
 
 # Husky
 .husky/_
+
+# Build artifacts (tarballs)
+*.tgz
