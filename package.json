@@ -1,6 +1,6 @@
 {
   "name": "create-charcole",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "description": "CLI to create production-ready Node.js Express APIs with TypeScript/JavaScript, JWT auth, auto-generated Swagger docs, built in modules and repository pattern",
   "license": "MIT",
   "author": {
