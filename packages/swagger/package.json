@@ -56,7 +56,7 @@
     "express",
     "charcole swagger"
   ],
-  "license": "ISC",
+  "license": "MIT",
   "publishConfig": {
     "access": "public"
   }
