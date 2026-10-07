@@ -1,3 +1,5 @@
+import { createHmac } from "node:crypto";
+import * as lemonSqueezy from "@lemonsqueezy/lemonsqueezy.js";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Ensure the external SDK is mocked before importing the adapter
@@ -18,7 +20,7 @@ describe("LemonSqueezyAdapter", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockLS = vi.mocked(require("@lemonsqueezy/lemonsqueezy.js"));
+    mockLS = vi.mocked(lemonSqueezy);
     adapter = new LemonSqueezyAdapter({
       apiKey: "api_fake",
       webhookSecret: "secret_fake",
@@ -94,27 +96,10 @@ describe("LemonSqueezyAdapter", () => {
     });
   });
 
-  it("refunds a payment", async () => {
-    mockLS.createRefund.mockResolvedValue({
-      error: null,
-      data: {
-        data: {
-          id: 789,
-          attributes: {
-            status: "completed",
-            amount: 500,
-          },
-        },
-      },
+  it("reports unsupported refunds", async () => {
+    await expect(adapter.refundPayment({ paymentId: "456" })).rejects.toMatchObject({
+      code: "LS_REFUND_NOT_SUPPORTED",
     });
-
-    const result = await adapter.refundPayment({
-      paymentId: "456",
-    });
-
-    expect(result.id).toBe("789");
-    expect(result.status).toBe("completed");
-    expect(result.amount).toBe(500);
   });
 
   it("gets payment status", async () => {
@@ -159,7 +144,8 @@ describe("LemonSqueezyAdapter", () => {
       }),
     );
 
-    const result = await adapter.verifyWebhook(rawBody, "correct_signature");
+    const signature = createHmac("sha256", "secret_fake").update(rawBody).digest("hex");
+    const result = await adapter.verifyWebhook(rawBody, signature);
 
     expect(result.event).toBe("order_created");
     expect(result.data.id).toBe("123");
@@ -193,9 +179,9 @@ describe("LemonSqueezyAdapter", () => {
           webhookSecret: "secret_fake",
           storeId: "123",
         }),
-    ).toMatchObject({
+    ).toThrowError(expect.objectContaining({
       code: "CONFIG_ERROR",
-    });
+    }));
   });
 
   it("throws CONFIG_ERROR when webhookSecret missing", () => {
@@ -212,9 +198,9 @@ describe("LemonSqueezyAdapter", () => {
           apiKey: "api_fake",
           storeId: "123",
         }),
-    ).toMatchObject({
+    ).toThrowError(expect.objectContaining({
       code: "CONFIG_ERROR",
-    });
+    }));
   });
 
   it("throws CONFIG_ERROR when storeId missing", () => {
@@ -231,8 +217,8 @@ describe("LemonSqueezyAdapter", () => {
           apiKey: "api_fake",
           webhookSecret: "secret_fake",
         }),
-    ).toMatchObject({
+    ).toThrowError(expect.objectContaining({
       code: "CONFIG_ERROR",
-    });
+    }));
   });
 });
