@@ -1,3 +1,4 @@
+import Stripe from "stripe";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Mock stripe before importing the adapter so the adapter picks up the mock
@@ -27,11 +28,11 @@ describe("StripeAdapter", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockStripe = new (vi.mocked(require("stripe").default))();
     adapter = new StripeAdapter({
       secretKey: "sk_test_fake",
       webhookSecret: "whsec_fake",
     });
+    mockStripe = vi.mocked(Stripe).mock.results.at(-1).value;
   });
 
   it("creates a payment intent", async () => {
@@ -127,9 +128,9 @@ describe("StripeAdapter", () => {
     );
     expect(
       () => new StripeAdapter({ webhookSecret: "whsec_fake" }),
-    ).toMatchObject({
+    ).toThrowError(expect.objectContaining({
       code: "CONFIG_ERROR",
-    });
+    }));
   });
 
   it("throws CONFIG_ERROR when webhookSecret missing", () => {
@@ -138,8 +139,8 @@ describe("StripeAdapter", () => {
     );
     expect(
       () => new StripeAdapter({ secretKey: "sk_test_fake" }),
-    ).toMatchObject({
+    ).toThrowError(expect.objectContaining({
       code: "CONFIG_ERROR",
-    });
+    }));
   });
 });
