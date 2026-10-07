@@ -41,18 +41,19 @@
   },
   "scripts": {
     "test:run": "echo 'No root tests' && exit 0",
+    "test:push": "npm run test:run && npm --prefix packages/payments run test:run && npm --prefix packages/swagger run test:run -- --passWithNoTests",
     "prepare": "husky",
     "lint:commits": "commitlint --from HEAD~1 --to HEAD",
     "lint:staged": "lint-staged"
   },
   "lint-staged": {
-    "*.{js,ts}": "node --check",
-    "package*.json": "node -e \"JSON.parse(require('fs').readFileSync(process.argv[1], 'utf8'))\" --"
+    "*.{js,cjs,mjs,ts,tsx,json}": "node scripts/check-staged.cjs"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.0.1",
     "@commitlint/config-conventional": "^21.0.1",
     "husky": "^9.1.7",
-    "lint-staged": "^17.0.5"
+    "lint-staged": "^17.0.5",
+    "typescript": "^5.9.3"
   }
 }
