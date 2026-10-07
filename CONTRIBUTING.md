@@ -25,7 +25,7 @@ This guide covers everything you need to know before making your first contribut
 
 ### Prerequisites
 
-- Node.js 18 or higher
+- Node.js 22.22.1 or higher for repository development (required by lint-staged)
 - npm (comes with Node.js)
 - Git
 
@@ -42,11 +42,25 @@ cd charcole
 # 3. Install dependencies (this also sets up Husky hooks automatically)
 npm install
 
+# Install standalone package test dependencies
+npm --prefix packages/payments ci
+npm --prefix packages/swagger ci
+
 # 4. Verify everything works
 npm run test:run
 ```
 
 After `npm install`, Husky hooks are active on your local repo. Your commits and pushes will be automatically validated.
+
+`pre-commit` checks branch names and the syntax of staged JavaScript, TypeScript,
+and JSON files. `commit-msg` validates Conventional Commits. `pre-push` runs
+`npm run test:push`; Swagger currently has no tests, so an empty suite is allowed.
+Pushes that only delete branches or tags skip tests. Detached HEAD commits skip
+branch-name validation so rebases and cherry-picks can proceed.
+
+If hooks are missing after installing dependencies, run `npm run prepare`.
+The expected `git config --get core.hooksPath` value is `.husky/_`.
+Hook files use the Husky 9 format; do not source `_/husky.sh`.
 
 ---
 
