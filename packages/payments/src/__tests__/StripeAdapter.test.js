@@ -41,6 +41,7 @@ describe("StripeAdapter", () => {
       status: "requires_payment_method",
       amount: 1000,
       currency: "usd",
+      metadata: { orderId: "123" },
     });
 
     const result = await adapter.createPayment({
@@ -54,6 +55,7 @@ describe("StripeAdapter", () => {
     expect(result.status).toBe("requires_payment_method");
     expect(result.amount).toBe(1000);
     expect(result.currency).toBe("usd");
+    expect(result.metadata).toEqual({ orderId: "123" });
   });
 
   it("refunds a payment", async () => {
@@ -79,6 +81,7 @@ describe("StripeAdapter", () => {
       status: "succeeded",
       amount: 1000,
       currency: "usd",
+      metadata: { orderId: "123" },
     });
 
     const result = await adapter.getPaymentStatus("pi_abc123");
@@ -87,6 +90,7 @@ describe("StripeAdapter", () => {
     expect(result.status).toBe("paid");
     expect(result.amount).toBe(1000);
     expect(result.currency).toBe("usd");
+    expect(result.metadata).toEqual({ orderId: "123" });
   });
 
   it("verifies webhook", async () => {
