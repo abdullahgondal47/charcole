@@ -17,9 +17,9 @@ describe("webhookUtils", () => {
 
     it("throws PaymentError for unknown provider", () => {
       expect(() => getWebhookSignatureHeader("unknown")).toThrow(PaymentError);
-      expect(() => getWebhookSignatureHeader("unknown")).toMatchObject({
+      expect(() => getWebhookSignatureHeader("unknown")).toThrowError(expect.objectContaining({
         code: "CONFIG_ERROR",
-      });
+      }));
     });
   });
 
@@ -38,10 +38,10 @@ describe("webhookUtils", () => {
         headers: {},
       };
       expect(() => extractSignature(req, "stripe")).toThrow(PaymentError);
-      expect(() => extractSignature(req, "stripe")).toMatchObject({
+      expect(() => extractSignature(req, "stripe")).toThrowError(expect.objectContaining({
         code: "WEBHOOK_INVALID",
         statusCode: 401,
-      });
+      }));
     });
   });
 });
